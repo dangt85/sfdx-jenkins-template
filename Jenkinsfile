@@ -17,7 +17,7 @@ node {
     }
 
     stage('Create Scratch Org') {
-        rc = sh returnStatus: true, script: "sfdx force:org:create --definitionfile config/project-scratch-def.json --json --setdefaultusername -a ciorg -d 1"
+        rc = sh returnStatus: true, script: "sfdx force:org:create --definitionfile config/project-scratch-def.json --json --setdefaultusername --setalias ciorg --durationdays 1"
         if (rc != 0) { error 'scratch org creation failed' }
     }
 
@@ -36,7 +36,7 @@ node {
     stage('Run Apex Test') {
         sh "mkdir -p ${RUN_ARTIFACT_DIR}"
         timeout(time: 120, unit: 'SECONDS') {
-            rc = sh returnStatus: true, script: "sfdx force:apex:test:run --testlevel RunLocalTests --outputdir ${RUN_ARTIFACT_DIR} --resultformat junit"
+            rc = sh returnStatus: true, script: "sfdx force:apex:test:run --testlevel RunLocalTests --codecoverage --outputdir ${RUN_ARTIFACT_DIR} --resultformat junit"
             if (rc != 0) {
                 error 'apex test run failed'
             }
@@ -44,7 +44,7 @@ node {
     }
 
     stage('Delete Sratch Org') {
-        rc = sh returnStatus: true, script: "sfdx force:org:delete -u ciorg -p"
+        rc = sh returnStatus: true, script: "sfdx force:org:delete --targetusername ciorg --noprompt"
         if (rc != 0) {
             error 'org delete failed'
         }
