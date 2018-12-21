@@ -17,7 +17,7 @@ node {
     }
 
     stage('Create Scratch Org') {
-        rc = sh returnStdout: true, script: "sfdx force:org:create --definitionfile config/project-scratch-def.json --json --setdefaultusername -a ciorg -d 1"
+        rc = sh returnStatus: true, script: "sfdx force:org:create --definitionfile config/project-scratch-def.json --json --setdefaultusername -a ciorg -d 1"
         if (rc != 0) { error 'scratch org creation failed' }
     }
 
