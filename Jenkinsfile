@@ -44,7 +44,7 @@ node {
     }
 
     stage('Delete Sratch Org') {
-        rc = sh returnStatus: true, script: "sfdx force:org:delete -a ciorg -p"
+        rc = sh returnStatus: true, script: "sfdx force:org:delete -u ciorg -p"
         if (rc != 0) {
             error 'org delete failed'
         }
