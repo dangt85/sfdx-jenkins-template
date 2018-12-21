@@ -11,10 +11,12 @@ node {
         checkout scm
     }
 
-    stage('Create Scratch Org') {
+    stage('Authorize DevHub') {
         rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${DEV_HUB_CONSUMER_KEY} --username ${DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setdefaultdevhubusername"
         if (rc != 0) { error 'hub org authorization failed' }
+    }
 
+    stage('Create Scratch Org') {
         rc = sh returnStdout: true, script: "sfdx force:org:create --definitionfile config/project-scratch-def.json --json --setdefaultusername -a ciorg -d 1"
         if (rc != 0) { error 'scratch org creation failed' }
     }
@@ -48,7 +50,7 @@ node {
         }
     }
 
-    stage('collect results') {
+    stage('Collect Test Results') {
         junit keepLongStdio: true, testResults: 'tests/**/*-junit.xml'
     }
 }
