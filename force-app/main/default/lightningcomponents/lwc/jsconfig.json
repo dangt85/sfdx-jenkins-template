@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "baseUrl": ".",
+        "paths": {
+            "c/my-component": [
+                "myComponent/myComponent.js"
+            ]
+        }
+    },
+    "include": [
+        "**/*",
+        "../../../../../.sfdx/typings/lwc/**/*.d.ts"
+    ]
+}

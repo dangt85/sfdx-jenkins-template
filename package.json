@@ -1,0 +1,24 @@
+{
+  "name": "sfdx-jenkins",
+  "version": "1.0.0",
+  "description": "## Install Jenkins Install and start Docker",
+  "main": "index.js",
+  "dependencies": {
+    "selenium-webdriver": "^4.0.0-alpha.1",
+    "cucumber": "^5.0.3"
+  },
+  "devDependencies": {
+    "@salesforce/lwc-jest": "^0.4.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:unit": "lwc-jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/danielgonzalezcwc/sfdx-jenkins.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/danielgonzalezcwc/sfdx-jenkins#readme"
+}
