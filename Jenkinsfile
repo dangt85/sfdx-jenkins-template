@@ -33,12 +33,29 @@ node {
         // }
     }
 
-    stage('Run Apex Test') {
-        sh "mkdir -p ${RUN_ARTIFACT_DIR}"
+    stage('Run Apex Tests') {
         timeout(time: 120, unit: 'SECONDS') {
             rc = sh returnStatus: true, script: "sfdx force:apex:test:run --testlevel RunLocalTests --codecoverage --outputdir ${RUN_ARTIFACT_DIR} --resultformat junit"
             if (rc != 0) {
                 error 'apex test run failed'
+            }
+        }
+    }
+
+    stage('Run Aura Tests') {
+        timeout(time: 120, unit: 'SECONDS') {
+            rc = sh returnStatus: true, script: "sfdx force:lightning:test:run -a myTestSuite.app"
+            if (rc != 0) {
+                error 'aura test run failed'
+            }
+        }
+    }
+
+    stage('Run LWC Tests') {
+        timeout(time: 120, unit: 'SECONDS') {
+            rc = sh returnStatus: true, script: "npm run jest"
+            if (rc != 0) {
+                error 'lwc test run failed'
             }
         }
     }
