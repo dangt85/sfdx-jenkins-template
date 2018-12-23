@@ -6,6 +6,7 @@ node {
     }
 
     stage('deploy') {
+        echo env.BRANCH_NAME
         if (env.BRANCH_NAME == 'master') { 
             echo 'prod build'
         }
