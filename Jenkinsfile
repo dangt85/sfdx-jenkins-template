@@ -6,17 +6,12 @@ node {
     }
 
     stage('deploy') {
-        echo env.BRANCH_NAME
-        if (env.BRANCH_NAME == 'master') { 
-            echo 'prod build'
-        }
+        when { branch 'master' }
+        echo 'master'
+    }
 
-        if (env.BRANCH_NAME == 'stage') {
-            echo 'stage build'
-        }
-
-        if (env.BRANCH_NAME ==~ /feature\.*/) {
-            echo 'sfdx ci build'
-        }
+    stage('deploy2') {
+        when { branch 'stage'}
+        echo 'stage'
     }
 }
