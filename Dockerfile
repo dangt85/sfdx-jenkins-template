@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:lts
+FROM jenkinsci/blueocean:lts
 
 USER root
 
@@ -26,5 +26,8 @@ ENV SFDX_AUTOUPDATE_DISABLE=false \
     STAGE_CONSUMER_KEY=3MVG90D5vR7UtjboLvIcVTyDai_8.uzajrFUAWc0VtRRCFm_gEwYDGMGugESLXzYfJDn4g0XPug==
 
 RUN sfdx update
+
+# Install default Jenkins plugins
+RUN /usr/local/bin/install-plugins.sh github junit workflow-aggregator
 
 USER jenkins
