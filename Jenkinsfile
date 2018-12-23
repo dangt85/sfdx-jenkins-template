@@ -1,17 +1,10 @@
 #!groovy
 
 node {
-    stage('checkout source') {
-        checkout scm
-    }
-
-    stage('deploy') {
-        when { branch 'master' }
+    echo env.BRANCH_NAME
+    if(env.BRANCH_NAME == 'master') {
         echo 'master'
-    }
-
-    stage('deploy2') {
-        when { branch 'stage'}
+    } else if (env.BRANCH_NAME == 'stage') {
         echo 'stage'
     }
 }
