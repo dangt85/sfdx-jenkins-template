@@ -1,4 +1,4 @@
-FROM jenkinsci/blueocean:lts
+FROM jenkins/jenkins:lts
 
 USER root
 
@@ -28,6 +28,6 @@ ENV SFDX_AUTOUPDATE_DISABLE=false \
 RUN sfdx update
 
 # Install default Jenkins plugins
-RUN /usr/local/bin/install-plugins.sh github junit workflow-aggregator
+RUN /usr/local/bin/install-plugins.sh github junit workflow-aggregator blueocean
 
 USER jenkins
