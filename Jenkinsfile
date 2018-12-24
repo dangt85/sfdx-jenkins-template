@@ -21,7 +21,7 @@ pipeline {
                     // convert to metadata api
                     rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
                     if (rc != 0) { error 'metadata convert failed' }
-                    rmsg = sh returnStdout: true, script: "sfdx force:mdapi:deploy --checkonly true --deploydir src/ --ignoreerrors false --ignorewarnings false --targetusername PROD --testlevel RunLocalTests --wait 5"
+                    rmsg = sh returnStdout: true, script: "sfdx force:mdapi:deploy --checkonly --deploydir src/ --targetusername PROD --testlevel RunLocalTests --wait 5"
                     def jsonSlurper = new JsonSlurperClassic()
                     def robj = jsonSlurper.parseText(rmsg)
                     if (robj.status != 0) { error 'prod deploy failed: ' + robj.message }
@@ -69,7 +69,7 @@ pipeline {
                     // convert to metadata api
                     rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
                     if (rc != 0) { error 'metadata convert failed' }
-                    rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --checkonly false --deploydir src/ --ignoreerrors false --ignorewarnings false --targetusername STAGE --testlevel RunLocalTests --wait 5"
+                    rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --deploydir src/ --targetusername STAGE --testlevel RunLocalTests --wait 5"
                     if (rc != 0) { error 'deploy failed' }
                     // assign permset
                     // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
