@@ -60,14 +60,14 @@ node {
                     }
                 }
             }
-            stage('Run LWC Tests') {
-                timeout(time: 120, unit: 'SECONDS') {
-                    rc = sh returnStatus: true, script: "npm run jest"
-                    if (rc != 0) {
-                        error 'lwc test run failed'
-                    }
-                }
-            }
+            // stage('Run LWC Tests') {
+            //     timeout(time: 120, unit: 'SECONDS') {
+            //         rc = sh returnStatus: true, script: "npm run jest"
+            //         if (rc != 0) {
+            //             error 'lwc test run failed'
+            //         }
+            //     }
+            // }
         }
 
         parallel('Free up ciorg and report tests results') {
@@ -88,6 +88,23 @@ node {
         stage('Authorize PROD') {
             rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${DEV_HUB_CONSUMER_KEY} --username ${DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setalias PROD"
             if (rc != 0) { error 'hub org authorization failed' }
+        }
+
+        stage('Deploy to PROD') {
+            // convert to metadata api
+            rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
+            if (rc != 0) {
+                error 'metadata convert failed'
+            }
+            rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --checkonly true --deploydir src/ --ignoreerrors false --ignorewarnings false --targetusername PROD --testlevel RunLocalTests --wait 5"
+            if (rc != 0) {
+                error 'deploy failed'
+            }
+            // assign permset
+            // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
+            // if (rc != 0) {
+            //     error 'permset:assign failed'
+            // }
         }
     }
 
