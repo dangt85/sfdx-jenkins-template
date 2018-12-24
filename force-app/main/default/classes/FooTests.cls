@@ -7,6 +7,6 @@ private class FooTests {
 
     @isTest
     static void getBarTest() {
-        System.assertEquals('foo', Foo.getBar());
+        System.assertEquals('bar', Foo.getBar());
     }
 }
