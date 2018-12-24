@@ -94,12 +94,8 @@ pipeline {
                     }
                     steps {
                         script {
-                            if(params.COMMIT == true) {
-                                echo 'quick deploy ${params.COMMIT}'
-                                printf robj
-                                // rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
-                                // if (rc != 0) { error 'metadata convert failed' }
-                            }
+                            echo 'quick deploy ${params.COMMIT}'
+                            printf robj
                         }
                     }
                 }
@@ -183,7 +179,6 @@ pipeline {
             echo 'sfdx ciorg delete'
             script {
                 rc = sh returnStatus: true, script: "sfdx force:org:delete --targetusername ciorg --noprompt"
-                if (rc != 0) { error 'org delete failed' }
             }
         }
     }
