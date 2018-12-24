@@ -88,27 +88,43 @@ pipeline {
         }
         stage('Tests') {
             when { branch 'feature*' }
-            steps {
-                parallel {
-                    timeout(time: 120, unit: 'SECONDS') {
+            failFast true
+            parallel {
+                stage('Run Apex tests') {
+                    options {
+                        timeout(time: 120, unit: 'SECONDS') 
+                    }
+                    steps {
                         script {
                             rc = sh returnStatus: true, script: "sfdx force:apex:test:run --testlevel RunLocalTests --codecoverage --outputdir tests/ --resultformat junit"
                             if (rc != 0) { error 'apex test run failed' }
                         }
                     }
-                    timeout(time: 120, unit: 'SECONDS') {
+                }
+                stage('Run Aura tests') {
+                    options {
+                        timeout(time: 120, unit: 'SECONDS')
+                    }
+                    steps {
                         script {
                             rc = sh returnStatus: true, script: "sfdx force:lightning:test:run -a myTestSuite.app"
                             if (rc != 0) { error 'aura test run failed' }
                         }
                     }
-                    timeout(time: 120, unit: 'SECONDS') {
-                        script {
-                            rc = sh returnStatus: true, script: "npm run jest"
-                            if (rc != 0) { error 'lwc test run failed' }
-                        }
-                    }
                 }
+                // stage('Run LWC tests') {
+                //     options {
+                //         timeout(time: 120, unit: 'SECONDS')
+                //     }
+                //     steps {
+                //         script {
+                //             rc = sh returnStatus: true, script: "npm run jest"
+                //             if (rc != 0) { error 'lwc test run failed' }
+                //         }
+                //     }
+                // }
+            }
+            steps {
                 junit keepLongStdio: true, testResults: 'tests/*-junit.xml'
             }
         }
