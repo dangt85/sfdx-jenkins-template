@@ -124,6 +124,9 @@ pipeline {
                 //     }
                 // }
             }
+        }
+        stage('Reports') {
+            when { branch 'feature*' }
             steps {
                 junit keepLongStdio: true, testResults: 'tests/*-junit.xml'
             }
