@@ -92,9 +92,7 @@ pipeline {
                     }
                     steps {
                         script {
-                            echo "quick deploy ${COMMIT}"
-                            echo env.VALIDATION_ID
-                            rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --targetusername PROD --validateddeployrequestid ${env.VALIDATION_ID}"
+                            rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --targetusername STAGE --validateddeployrequestid ${env.VALIDATION_ID}"
                             if (rc != 0) { error 'quick deploy failed' }
                         }
                     }
