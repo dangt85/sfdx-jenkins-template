@@ -26,6 +26,7 @@ pipeline {
                             rmsg = sh returnStdout: true, script: "sfdx force:mdapi:deploy --checkonly --deploydir src/ --targetusername PROD --testlevel RunLocalTests --wait 10 --json"
                             def robj = new JsonSlurper().parseText(rmsg)
                             if (robj.status != 0) { error 'prod deploy failed: ' + robj.message }
+                            else { env.VALIDATION_ID = robj.result.id }
                             // assign permset
                             // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
                             // if (rc != 0) {
@@ -44,12 +45,8 @@ pipeline {
                     }
                     steps {
                         script {
-                            if(params.COMMIT == true) {
-                                echo 'quick deploy ${params.COMMIT}'
-                                printf robj
-                                // rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
-                                // if (rc != 0) { error 'metadata convert failed' }
-                            }
+                            rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --targetusername PROD --validateddeployrequestid ${env.VALIDATION_ID}"
+                            if (rc != 0) { error 'quick deploy failed' }
                         }
                     }
                 }
@@ -76,6 +73,7 @@ pipeline {
                             rmsg = sh returnStdout: true, script: "sfdx force:mdapi:deploy --checkonly --deploydir src/ --targetusername STAGE --testlevel RunLocalTests --wait 10 --json"
                             def robj = new JsonSlurper().parseText(rmsg)
                             if (robj.status != 0) { error 'stage deploy failed: ' + robj.message }
+                            else { env.VALIDATION_ID = robj.result.id }
                             // assign permset
                             // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
                             // if (rc != 0) {
@@ -94,8 +92,10 @@ pipeline {
                     }
                     steps {
                         script {
-                            echo 'quick deploy ${params.COMMIT}'
-                            printf robj
+                            echo "quick deploy ${COMMIT}"
+                            echo env.VALIDATION_ID
+                            rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --targetusername PROD --validateddeployrequestid ${env.VALIDATION_ID}"
+                            if (rc != 0) { error 'quick deploy failed' }
                         }
                     }
                 }
