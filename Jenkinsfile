@@ -1,7 +1,7 @@
 #!groovy
 
 node {
-    stage('checkout source') {
+    stage('Checkout git') {
         checkout scm
     }
     echo env.BRANCH_NAME
@@ -51,8 +51,7 @@ node {
     //     // }
     // }
     stage('Authorize') {
-        echo env.BRANCH_NAME
-        if(env.BRANCH_NAME ==~ /feature\.*/) {
+        if(env.BRANCH_NAME ==~ /feature.*/) {
             steps {
                 rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${env.DEV_HUB_CONSUMER_KEY} --username ${env.DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setdefaultdevhubusername"
                 if (rc != 0) { error 'hub org authorization failed' }
@@ -60,7 +59,7 @@ node {
         }
     }
     stage('Build') {
-        if(env.BRANCH_NAME ==~ /feature\.*/) {
+        if(env.BRANCH_NAME ==~ /feature.*/) {
             steps {
                 rc = sh returnStatus: true, script: "sfdx force:org:create --definitionfile config/project-scratch-def.json --json --setdefaultusername --setalias ciorg --durationdays 1"
                 if (rc != 0) { error 'scratch org creation failed' }
@@ -75,7 +74,7 @@ node {
         }
     }
     stage('Run tests') {
-        if(env.BRANCH_NAME ==~ /feature\.*/) {
+        if(env.BRANCH_NAME ==~ /feature.*/) {
             steps {
                 timeout(time: 120, unit: 'SECONDS') {
                     rc = sh returnStatus: true, script: "sfdx force:apex:test:run --testlevel RunLocalTests --codecoverage --outputdir ${RUN_ARTIFACT_DIR} --resultformat junit"
@@ -93,7 +92,7 @@ node {
         }
     }
     stage('Finish') {
-        if(env.BRANCH_NAME ==~ /feature\.*/) {
+        if(env.BRANCH_NAME ==~ /feature.*/) {
             steps {
                 rc = sh returnStatus: true, script: "sfdx force:org:delete --targetusername ciorg --noprompt"
                 if (rc != 0) { error 'org delete failed' }
