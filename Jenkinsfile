@@ -30,7 +30,7 @@ pipeline {
         //     //     error 'permset:assign failed'
         //     // }
         // }
-        stage('Authorize') {
+        stage('Authorize STAGE') {
             when { branch 'stage' }
             steps {
                 echo 'STAGE'
@@ -57,7 +57,7 @@ pipeline {
         //     //     error 'permset:assign failed'
         //     // }
         // }
-        stage('Authorize') {
+        stage('Authorize DevHub') {
             when { branch 'feature*' }
             steps {
                 echo 'DevHub'
