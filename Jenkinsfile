@@ -17,40 +17,43 @@ pipeline {
         stage('Deploy to PROD') {
             when { branch 'master' }
             steps {
-                script {
-                    rc = sh returnStatus: true, script: "sfdx force:lightning:test:install --packagetype jasmine --targetusername PROD --wait 5"
-                    if (rc != 0) { error 'Lightning Testing Service install failed' }
-                    // convert to metadata api
-                    rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
-                    if (rc != 0) { error 'metadata convert failed' }
-                    rmsg = sh returnStdout: true, script: "sfdx force:mdapi:deploy --checkonly --deploydir src/ --targetusername PROD --testlevel RunLocalTests --wait 10 --json"
-                    def jsonSlurper = new JsonSlurperClassic()
-                    def robj = jsonSlurper.parseText(rmsg)
-                    if (robj.status != 0) { error 'prod deploy failed: ' + robj.message }
-                    // assign permset
-                    // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
-                    // if (rc != 0) {
-                    //     error 'permset:assign failed'
-                    // }
+                stage('Validate package') {
+                    steps {
+                        script {
+                            rc = sh returnStatus: true, script: "sfdx force:lightning:test:install --packagetype jasmine --targetusername PROD --wait 5"
+                            if (rc != 0) { error 'Lightning Testing Service install failed' }
+                            // convert to metadata api
+                            rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
+                            if (rc != 0) { error 'metadata convert failed' }
+                            rmsg = sh returnStdout: true, script: "sfdx force:mdapi:deploy --checkonly --deploydir src/ --targetusername PROD --testlevel RunLocalTests --wait 10 --json"
+                            def jsonSlurper = new JsonSlurperClassic()
+                            def robj = jsonSlurper.parseText(rmsg)
+                            if (robj.status != 0) { error 'prod deploy failed: ' + robj.message }
+                            // assign permset
+                            // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
+                            // if (rc != 0) {
+                            //     error 'permset:assign failed'
+                            // }
+                        }
+                    }
                 }
-            }
-        }
-        stage('Quick deploy PROD') {
-            when { branch 'master' }
-            input {
-                message 'Commit deploy?'
-                ok 'Yes'
-                parameters {
-                    booleanParam(name: 'COMMIT', defaultValue: true, description: '')
-                }
-            }
-            steps {
-                script {
-                    if(params.COMMIT == true) {
-                        echo 'quick deploy ${params.COMMIT}'
-                        printf rmsg
-                        // rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
-                        // if (rc != 0) { error 'metadata convert failed' }
+                stage('Quick deploy') {
+                    input {
+                        message 'Commit deploy?'
+                        ok 'Yes'
+                        parameters {
+                            booleanParam(name: 'COMMIT', defaultValue: true, description: '')
+                        }
+                    }
+                    steps {
+                        script {
+                            if(params.COMMIT == true) {
+                                echo 'quick deploy ${params.COMMIT}'
+                                printf rmsg
+                                // rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
+                                // if (rc != 0) { error 'metadata convert failed' }
+                            }
+                        }
                     }
                 }
             }
