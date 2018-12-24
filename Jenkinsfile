@@ -113,10 +113,10 @@ pipeline {
         //         }
         //     }
         // }
-        post {
-            always {
-                echo 'sfdx ciorg delete'
-            }
+    }
+    post {
+        always {
+            echo 'sfdx ciorg delete'
         }
     }
 }
