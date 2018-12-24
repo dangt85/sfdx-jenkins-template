@@ -4,6 +4,7 @@ node {
     stage('checkout source') {
         checkout scm
     }
+    echo env.BRANCH_NAME
 
     // stage('Authorize PROD') {
     //     when { branch 'master' }
@@ -50,6 +51,7 @@ node {
     //     // }
     // }
     stage('Authorize') {
+        echo env.BRANCH_NAME
         if(env.BRANCH_NAME ==~ /feature\.*/) {
             steps {
                 rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${env.DEV_HUB_CONSUMER_KEY} --username ${env.DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setdefaultdevhubusername"
