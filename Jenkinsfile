@@ -4,14 +4,13 @@ node {
     stage('checkout source') {
         checkout scm
     }
-    stage('Build') {
-        if(env.BRANCH_NAME == 'master') {
-            prodDeploy()
-        } else if(env.BRANCH_NAME == 'stage') {
-            stageDeploy()
-        } else if(env.BRANCH_NAME ==~ /feature\.*/) {
-            ciBuild()
-        }
+    if(env.BRANCH_NAME == 'master') {
+        prodDeploy()
+    } else if(env.BRANCH_NAME == 'stage') {
+        stageDeploy()
+    } else if(env.BRANCH_NAME ==~ /feature\.*/) {
+        echo 'call ciBuild'
+        ciBuild()
     }
 }
 
@@ -22,6 +21,7 @@ def DEV_HUB_USERNAME=env.DEV_HUB_USERNAME
 def DEV_HUB_CONSUMER_KEY=env.DEV_HUB_CONSUMER_KEY
 
 def ciBuild() {
+    echo 'called ciBuild'
     stage('Authorize DevHub') {
         rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${DEV_HUB_CONSUMER_KEY} --username ${DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setdefaultdevhubusername"
         if (rc != 0) { error 'hub org authorization failed' }
