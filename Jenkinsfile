@@ -24,7 +24,7 @@ pipeline {
                     rmsg = sh returnStdout: true, script: "sfdx force:mdapi:deploy --checkonly true --deploydir src/ --ignoreerrors false --ignorewarnings false --targetusername PROD --testlevel RunLocalTests --wait 5"
                     def jsonSlurper = new JsonSlurperClassic()
                     def robj = jsonSlurper.parseText(rmsg)
-                    if (robj.status ! 0) { error 'prod deploy failed: ' + robj.message }
+                    if (robj.status != 0) { error 'prod deploy failed: ' + robj.message }
                     // assign permset
                     // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
                     // if (rc != 0) {
