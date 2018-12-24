@@ -5,111 +5,108 @@ node {
         checkout scm
     }
 
-    stage('Authorize PROD') {
-        when { branch 'master' }
-        rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${DEV_HUB_CONSUMER_KEY} --username ${DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setalias PROD"
-        if (rc != 0) { error 'hub org authorization failed' }
-    }
-    stage('Deploy to PROD') {
-        when { branch 'master' }
-        // convert to metadata api
-        rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
-        if (rc != 0) {
-            error 'metadata convert failed'
+    // stage('Authorize PROD') {
+    //     when { branch 'master' }
+    //     rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${DEV_HUB_CONSUMER_KEY} --username ${DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setalias PROD"
+    //     if (rc != 0) { error 'hub org authorization failed' }
+    // }
+    // stage('Deploy to PROD') {
+    //     when { branch 'master' }
+    //     // convert to metadata api
+    //     rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
+    //     if (rc != 0) {
+    //         error 'metadata convert failed'
+    //     }
+    //     rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --checkonly true --deploydir src/ --ignoreerrors false --ignorewarnings false --targetusername PROD --testlevel RunLocalTests --wait 5"
+    //     if (rc != 0) {
+    //         error 'deploy failed'
+    //     }
+    //     // assign permset
+    //     // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
+    //     // if (rc != 0) {
+    //     //     error 'permset:assign failed'
+    //     // }
+    // }
+    // stage('Authorize STAGE Sandbox') {
+    //     when { branch 'stage' }
+    //     rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${STAGE_CONSUMER_KEY} --username ${STAGE_USERNAME} --jwtkeyfile build/server.key --instanceurl https://test.salesforce.com --setalias STAGE"
+    //     if (rc != 0) { error 'hub org authorization failed' }
+    // }
+    // stage('Deploy to STAGE') {
+    //     when { branch 'stage' }
+    //     // convert to metadata api
+    //     rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
+    //     if (rc != 0) {
+    //         error 'metadata convert failed'
+    //     }
+    //     rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --checkonly false --deploydir src/ --ignoreerrors false --ignorewarnings false --targetusername STAGE --testlevel RunLocalTests --wait 5"
+    //     if (rc != 0) {
+    //         error 'deploy failed'
+    //     }
+    //     // assign permset
+    //     // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
+    //     // if (rc != 0) {
+    //     //     error 'permset:assign failed'
+    //     // }
+    // }
+    stage('Authorize') {
+        if(env.BRANCH_NAME ==~ /feature\.*/) {
+            steps {
+                rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${env.DEV_HUB_CONSUMER_KEY} --username ${env.DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setdefaultdevhubusername"
+                if (rc != 0) { error 'hub org authorization failed' }
+            }
         }
-        rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --checkonly true --deploydir src/ --ignoreerrors false --ignorewarnings false --targetusername PROD --testlevel RunLocalTests --wait 5"
-        if (rc != 0) {
-            error 'deploy failed'
+    }
+    stage('Build') {
+        if(env.BRANCH_NAME ==~ /feature\.*/) {
+            steps {
+                rc = sh returnStatus: true, script: "sfdx force:org:create --definitionfile config/project-scratch-def.json --json --setdefaultusername --setalias ciorg --durationdays 1"
+                if (rc != 0) { error 'scratch org creation failed' }
+                rc = sh returnStatus: true, script: "sfdx force:source:push"
+                if (rc != 0) { error 'source push failed' }
+                // assign permset
+                // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
+                // if (rc != 0) {
+                //     error 'permset:assign failed'
+                // }
+            }
         }
-        // assign permset
-        // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
-        // if (rc != 0) {
-        //     error 'permset:assign failed'
-        // }
-    }
-    stage('Authorize STAGE Sandbox') {
-        when { branch 'stage' }
-        rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${STAGE_CONSUMER_KEY} --username ${STAGE_USERNAME} --jwtkeyfile build/server.key --instanceurl https://test.salesforce.com --setalias STAGE"
-        if (rc != 0) { error 'hub org authorization failed' }
-    }
-    stage('Deploy to STAGE') {
-        when { branch 'stage' }
-        // convert to metadata api
-        rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
-        if (rc != 0) {
-            error 'metadata convert failed'
-        }
-        rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --checkonly false --deploydir src/ --ignoreerrors false --ignorewarnings false --targetusername STAGE --testlevel RunLocalTests --wait 5"
-        if (rc != 0) {
-            error 'deploy failed'
-        }
-        // assign permset
-        // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
-        // if (rc != 0) {
-        //     error 'permset:assign failed'
-        // }
-    }
-    stage('Authorize DevHub') {
-        when { branch 'feature*' }
-        rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${env.DEV_HUB_CONSUMER_KEY} --username ${env.DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setdefaultdevhubusername"
-        if (rc != 0) { error 'hub org authorization failed' }
-    }
-    stage('Create CI Org') {
-        when { branch 'feature*' }
-        rc = sh returnStatus: true, script: "sfdx force:org:create --definitionfile config/project-scratch-def.json --json --setdefaultusername --setalias ciorg --durationdays 1"
-        if (rc != 0) { error 'scratch org creation failed' }
-    }
-    stage('Push Source To CI Org') {
-        when { branch 'feature*' }
-        rc = sh returnStatus: true, script: "sfdx force:source:push"
-        if (rc != 0) {
-            error 'push failed'
-        }
-        // assign permset
-        // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
-        // if (rc != 0) {
-        //     error 'permset:assign failed'
-        // }
     }
 
     parallel('Run tests') {
-        when { branch 'feature*' }
-        stage('Run Apex Tests') {
-            timeout(time: 120, unit: 'SECONDS') {
-                rc = sh returnStatus: true, script: "sfdx force:apex:test:run --testlevel RunLocalTests --codecoverage --outputdir ${RUN_ARTIFACT_DIR} --resultformat junit"
-                if (rc != 0) {
-                    error 'apex test run failed'
+        if(env.BRANCH_NAME ==~ /feature\.*/) {
+            stage('Apex tests') {
+                timeout(time: 120, unit: 'SECONDS') {
+                    rc = sh returnStatus: true, script: "sfdx force:apex:test:run --testlevel RunLocalTests --codecoverage --outputdir ${RUN_ARTIFACT_DIR} --resultformat junit"
+                    if (rc != 0) { error 'apex test run failed' }
                 }
             }
-        }
-        stage('Run Aura Tests') {
-            timeout(time: 120, unit: 'SECONDS') {
-                rc = sh returnStatus: true, script: "sfdx force:lightning:test:run -a myTestSuite.app"
-                if (rc != 0) {
-                    error 'aura test run failed'
+            stage('Aura tests') {
+                timeout(time: 120, unit: 'SECONDS') {
+                    rc = sh returnStatus: true, script: "sfdx force:lightning:test:run -a myTestSuite.app"
+                    if (rc != 0) { error 'aura test run failed' }
                 }
             }
+            // stage('LWC tests') {
+            //     timeout(time: 120, unit: 'SECONDS') {
+            //         rc = sh returnStatus: true, script: "npm run jest"
+            //         if (rc != 0) {
+            //             error 'lwc test run failed'
+            //         }
+            //     }
+            // }
         }
-        // stage('Run LWC Tests') {
-        //     timeout(time: 120, unit: 'SECONDS') {
-        //         rc = sh returnStatus: true, script: "npm run jest"
-        //         if (rc != 0) {
-        //             error 'lwc test run failed'
-        //         }
-        //     }
-        // }
     }
-    parallel('Free up ciorg and report tests results') {
-        when { branch 'feature*' }
-        stage('Delete Sratch Org') {
-            rc = sh returnStatus: true, script: "sfdx force:org:delete --targetusername ciorg --noprompt"
-            if (rc != 0) {
-                error 'org delete failed'
+    parallel('Finish') {
+        if(env.BRANCH_NAME ==~ /feature\.*/) {
+            stage('Delete Sratch Org') {
+                rc = sh returnStatus: true, script: "sfdx force:org:delete --targetusername ciorg --noprompt"
+                if (rc != 0) { error 'org delete failed' }
             }
-        }
 
-        stage('Collect Test Results') {
-            junit keepLongStdio: true, testResults: 'tests/**/*-junit.xml'
+            stage('Collect Test Results') {
+                junit keepLongStdio: true, testResults: 'tests/**/*-junit.xml'
+            }
         }
     }
 }
