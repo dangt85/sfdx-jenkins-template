@@ -18,6 +18,8 @@ pipeline {
             when { branch 'master' }
             steps {
                 script {
+                    rc = sh returnStatus: true, script: "sfdx force:lightning:test:install --packagetype jasmine --targetusername PROD --wait 5"
+                    if (rc != 0) { error 'Lightning Testing Service install failed' }
                     // convert to metadata api
                     rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
                     if (rc != 0) { error 'metadata convert failed' }
@@ -66,6 +68,8 @@ pipeline {
             when { branch 'stage' }
             steps {
                 script {
+                    rc = sh returnStatus: true, script: "sfdx force:lightning:test:install --packagetype jasmine --targetusername STAGE --wait 5"
+                    if (rc != 0) { error 'Lightning Testing Service install failed' }
                     // convert to metadata api
                     rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
                     if (rc != 0) { error 'metadata convert failed' }
