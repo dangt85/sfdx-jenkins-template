@@ -32,9 +32,6 @@ node {
         }
 
         stage('Push Source To CI Org') {
-            when {
-                branch 'feature/*'
-            }
             rc = sh returnStatus: true, script: "sfdx force:source:push"
             if (rc != 0) {
                 error 'push failed'
