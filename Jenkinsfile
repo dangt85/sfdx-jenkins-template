@@ -52,30 +52,26 @@ node {
     // }
     stage('Authorize') {
         if(env.BRANCH_NAME ==~ /feature.*/) {
-            steps {
-                rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${env.DEV_HUB_CONSUMER_KEY} --username ${env.DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setdefaultdevhubusername"
-                if (rc != 0) { error 'hub org authorization failed' }
-            }
+            rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${env.DEV_HUB_CONSUMER_KEY} --username ${env.DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setdefaultdevhubusername"
+            if (rc != 0) { error 'hub org authorization failed' }
         }
     }
     stage('Build') {
         if(env.BRANCH_NAME ==~ /feature.*/) {
-            steps {
-                rc = sh returnStatus: true, script: "sfdx force:org:create --definitionfile config/project-scratch-def.json --json --setdefaultusername --setalias ciorg --durationdays 1"
-                if (rc != 0) { error 'scratch org creation failed' }
-                rc = sh returnStatus: true, script: "sfdx force:source:push"
-                if (rc != 0) { error 'source push failed' }
-                // assign permset
-                // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
-                // if (rc != 0) {
-                //     error 'permset:assign failed'
-                // }
-            }
+            rc = sh returnStatus: true, script: "sfdx force:org:create --definitionfile config/project-scratch-def.json --json --setdefaultusername --setalias ciorg --durationdays 1"
+            if (rc != 0) { error 'scratch org creation failed' }
+            rc = sh returnStatus: true, script: "sfdx force:source:push"
+            if (rc != 0) { error 'source push failed' }
+            // assign permset
+            // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
+            // if (rc != 0) {
+            //     error 'permset:assign failed'
+            // }
         }
     }
     stage('Run tests') {
         if(env.BRANCH_NAME ==~ /feature.*/) {
-            steps {
+            parallel {
                 timeout(time: 120, unit: 'SECONDS') {
                     rc = sh returnStatus: true, script: "sfdx force:apex:test:run --testlevel RunLocalTests --codecoverage --outputdir ${RUN_ARTIFACT_DIR} --resultformat junit"
                     if (rc != 0) { error 'apex test run failed' }
@@ -93,7 +89,7 @@ node {
     }
     stage('Finish') {
         if(env.BRANCH_NAME ==~ /feature.*/) {
-            steps {
+            parallel {
                 rc = sh returnStatus: true, script: "sfdx force:org:delete --targetusername ciorg --noprompt"
                 if (rc != 0) { error 'org delete failed' }
                 junit keepLongStdio: true, testResults: 'tests/**/*-junit.xml'
