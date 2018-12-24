@@ -16,7 +16,7 @@ pipeline {
         }
         stage('Deploy to PROD') {
             when { branch 'master' }
-            steps {
+            stages {
                 stage('Validate package') {
                     steps {
                         script {
