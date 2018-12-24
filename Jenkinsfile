@@ -4,14 +4,14 @@ node {
     stage('checkout source') {
         checkout scm
     }
-    
-
-    if(env.BRANCH_NAME == 'master') {
-        prodDeploy()
-    } else if(env.BRANCH_NAME == 'stage') {
-        stageDeploy()
-    } else if(env.BRANCH_NAME ==~ /feature\.*/) {
-        ciBuild()
+    stage('Build') {
+        if(env.BRANCH_NAME == 'master') {
+            prodDeploy()
+        } else if(env.BRANCH_NAME == 'stage') {
+            stageDeploy()
+        } else if(env.BRANCH_NAME ==~ /feature\.*/) {
+            ciBuild()
+        }
     }
 }
 
