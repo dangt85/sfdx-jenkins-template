@@ -3,13 +3,17 @@
 pipeline {
     stages {
         stage('Checkout git') {
-            checkout scm
+            steps {
+                checkout scm
+            }
         }
 
         stage('Authorize PROD') {
             when { branch 'master' }
-            rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${DEV_HUB_CONSUMER_KEY} --username ${DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setalias PROD"
-            if (rc != 0) { error 'hub org authorization failed' }
+            steps {
+                rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${DEV_HUB_CONSUMER_KEY} --username ${DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setalias PROD"
+                if (rc != 0) { error 'hub org authorization failed' }
+            }
         }
         // stage('Deploy to PROD') {
         //     when { branch 'master' }
@@ -30,8 +34,10 @@ pipeline {
         // }
         stage('Authorize STAGE Sandbox') {
             when { branch 'stage' }
-            rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${STAGE_CONSUMER_KEY} --username ${STAGE_USERNAME} --jwtkeyfile build/server.key --instanceurl https://test.salesforce.com --setalias STAGE"
-            if (rc != 0) { error 'hub org authorization failed' }
+            steps {
+                rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${STAGE_CONSUMER_KEY} --username ${STAGE_USERNAME} --jwtkeyfile build/server.key --instanceurl https://test.salesforce.com --setalias STAGE"
+                if (rc != 0) { error 'hub org authorization failed' }
+            }
         }
         // stage('Deploy to STAGE') {
         //     when { branch 'stage' }
