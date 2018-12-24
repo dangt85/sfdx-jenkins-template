@@ -8,3 +8,4 @@ package.xml
 **/.eslintrc.json
 
 **/__tests__/*test.js
+**/lightningcomponents/**
