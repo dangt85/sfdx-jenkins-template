@@ -1,18 +1,20 @@
 #!groovy
 
 pipeline {
+    agent any
     stages {
-        stage('Checkout git') {
-            steps {
-                checkout scm
-            }
-        }
+        // stage('Checkout git') {
+        //     steps {
+        //         checkout scm
+        //     }
+        // }
 
         stage('Authorize PROD') {
             when { branch 'master' }
             steps {
-                rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${DEV_HUB_CONSUMER_KEY} --username ${DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setalias PROD"
-                if (rc != 0) { error 'hub org authorization failed' }
+                // rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${DEV_HUB_CONSUMER_KEY} --username ${DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setalias PROD"
+                // if (rc != 0) { error 'hub org authorization failed' }
+                echo 'auth prod'
             }
         }
         // stage('Deploy to PROD') {
@@ -35,8 +37,9 @@ pipeline {
         stage('Authorize STAGE Sandbox') {
             when { branch 'stage' }
             steps {
-                rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${STAGE_CONSUMER_KEY} --username ${STAGE_USERNAME} --jwtkeyfile build/server.key --instanceurl https://test.salesforce.com --setalias STAGE"
-                if (rc != 0) { error 'hub org authorization failed' }
+                // rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${STAGE_CONSUMER_KEY} --username ${STAGE_USERNAME} --jwtkeyfile build/server.key --instanceurl https://test.salesforce.com --setalias STAGE"
+                // if (rc != 0) { error 'hub org authorization failed' }
+                echo 'auth stage'
             }
         }
         // stage('Deploy to STAGE') {
@@ -59,8 +62,11 @@ pipeline {
         stage('Authorize DevHub') {
             when { branch 'feature*'}
             steps {
-                rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${env.DEV_HUB_CONSUMER_KEY} --username ${env.DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setdefaultdevhubusername"
-                if (rc != 0) { error 'hub org authorization failed' }
+                echo 'auth devhub'
+                script {
+                    rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${env.DEV_HUB_CONSUMER_KEY} --username ${env.DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setdefaultdevhubusername"
+                    if (rc != 0) { error 'hub org authorization failed' }
+                }
             }
         }
         // stage('Build') {
@@ -107,5 +113,10 @@ pipeline {
         //         }
         //     }
         // }
+        post {
+            always {
+                echo 'sfdx ciorg delete'
+            }
+        }
     }
 }
