@@ -60,6 +60,10 @@ node {
         if(env.BRANCH_NAME ==~ /feature.*/) {
             rc = sh returnStatus: true, script: "sfdx force:org:create --definitionfile config/project-scratch-def.json --json --setdefaultusername --setalias ciorg --durationdays 1"
             if (rc != 0) { error 'scratch org creation failed' }
+
+            rc = sh returnStatus: true, script: "sfdx force:lightning:test:install --packagetype jasmine --wait 5"
+            if (rc != 0) { error 'Lightning Testing Service install failed' }
+            
             rc = sh returnStatus: true, script: "sfdx force:source:push"
             if (rc != 0) { error 'source push failed' }
             // assign permset
