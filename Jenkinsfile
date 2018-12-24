@@ -75,38 +75,29 @@ node {
         }
     }
 
-    parallel('Run tests') {
+    stage('Run tests') {
         if(env.BRANCH_NAME ==~ /feature\.*/) {
-            stage('Apex tests') {
+            steps {
                 timeout(time: 120, unit: 'SECONDS') {
                     rc = sh returnStatus: true, script: "sfdx force:apex:test:run --testlevel RunLocalTests --codecoverage --outputdir ${RUN_ARTIFACT_DIR} --resultformat junit"
                     if (rc != 0) { error 'apex test run failed' }
                 }
-            }
-            stage('Aura tests') {
                 timeout(time: 120, unit: 'SECONDS') {
                     rc = sh returnStatus: true, script: "sfdx force:lightning:test:run -a myTestSuite.app"
                     if (rc != 0) { error 'aura test run failed' }
                 }
+                timeout(time: 120, unit: 'SECONDS') {
+                    rc = sh returnStatus: true, script: "npm run jest"
+                    if (rc != 0) { error 'lwc test run failed' }
+                }
             }
-            // stage('LWC tests') {
-            //     timeout(time: 120, unit: 'SECONDS') {
-            //         rc = sh returnStatus: true, script: "npm run jest"
-            //         if (rc != 0) {
-            //             error 'lwc test run failed'
-            //         }
-            //     }
-            // }
         }
     }
-    parallel('Finish') {
+    stage('Finish') {
         if(env.BRANCH_NAME ==~ /feature\.*/) {
-            stage('Delete Sratch Org') {
+            steps {
                 rc = sh returnStatus: true, script: "sfdx force:org:delete --targetusername ciorg --noprompt"
                 if (rc != 0) { error 'org delete failed' }
-            }
-
-            stage('Collect Test Results') {
                 junit keepLongStdio: true, testResults: 'tests/**/*-junit.xml'
             }
         }
