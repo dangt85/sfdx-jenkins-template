@@ -24,8 +24,7 @@ pipeline {
                             rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
                             if (rc != 0) { error 'metadata convert failed' }
                             rmsg = sh returnStdout: true, script: "sfdx force:mdapi:deploy --checkonly --deploydir src/ --targetusername PROD --testlevel RunLocalTests --wait 10 --json"
-                            def jsonSlurper = new JsonSlurperClassic()
-                            def robj = jsonSlurper.parseText(rmsg)
+                            def robj = new JsonSlurper().parseText(rmsg)
                             if (robj.status != 0) { error 'prod deploy failed: ' + robj.message }
                             // assign permset
                             // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
@@ -47,7 +46,7 @@ pipeline {
                         script {
                             if(params.COMMIT == true) {
                                 echo 'quick deploy ${params.COMMIT}'
-                                printf rmsg
+                                printf robj
                                 // rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
                                 // if (rc != 0) { error 'metadata convert failed' }
                             }
@@ -73,8 +72,7 @@ pipeline {
                     rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
                     if (rc != 0) { error 'metadata convert failed' }
                     rmsg = sh returnStdout: true, script: "sfdx force:mdapi:deploy --checkonly --deploydir src/ --targetusername STAGE --testlevel RunLocalTests --wait 5 --json"
-                    def jsonSlurper = new JsonSlurperClassic()
-                    def robj = jsonSlurper.parseText(rmsg)
+                    def robj = new JsonSlurper().parseText(rmsg)
                     if (robj.status != 0) { error 'stage deploy failed: ' + robj.message }
                     // assign permset
                     // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
