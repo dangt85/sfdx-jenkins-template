@@ -70,30 +70,13 @@ pipeline {
                             // convert to metadata api
                             rc = sh returnStatus: true, script: "sfdx force:source:convert --rootdir force-app/ --outputdir src/"
                             if (rc != 0) { error 'metadata convert failed' }
-                            rmsg = sh returnStdout: true, script: "sfdx force:mdapi:deploy --checkonly --deploydir src/ --targetusername STAGE --testlevel RunLocalTests --wait 10 --json"
-                            def robj = new JsonSlurper().parseText(rmsg)
-                            if (robj.status != 0) { error 'stage deploy failed: ' + robj.message }
-                            else { env.VALIDATION_ID = robj.result.id }
+                            rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --deploydir src/ --targetusername STAGE --testlevel RunLocalTests --wait 10 --json"
+                            if (rc != 0) { error 'stage deploy failed' }
                             // assign permset
                             // rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
                             // if (rc != 0) {
                             //     error 'permset:assign failed'
                             // }
-                        }
-                    }
-                }
-                stage('Quick STAGE deploy') {
-                    input {
-                        message 'Commit deploy?'
-                        ok 'Yes'
-                        parameters {
-                            booleanParam(name: 'COMMIT', defaultValue: true, description: '')
-                        }
-                    }
-                    steps {
-                        script {
-                            rc = sh returnStatus: true, script: "sfdx force:mdapi:deploy --targetusername STAGE --validateddeployrequestid ${env.VALIDATION_ID}"
-                            if (rc != 0) { error 'quick deploy failed' }
                         }
                     }
                 }
