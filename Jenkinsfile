@@ -138,16 +138,16 @@ pipeline {
         }
         stage('Install release package') {
             when { buildingTag() }
-            steps {
-                input {
-                    message 'Install package in PROD?'
-                    ok 'Yes'
-                    parameters {
-                        booleanParam(name: 'COMMIT', defaultValue: true, description: '')
-                    }
+            input {
+                message 'Install package in PROD?'
+                ok 'Yes'
+                parameters {
+                    booleanParam(name: 'COMMIT', defaultValue: true, description: '')
                 }
+            }
+            steps {
                 script {
-                    if (params.COMMIT) {
+                    if (COMMIT) {
                         sh "echo 'force-app/main/default/aura/MyTestApp' >> .forceignore"
                         rc = sh returnStatus: true, script: "sfdx force:package:install --package ${env.SUBSCRIBER_PACKAGE_VERSION_ID} --targetusername PROD --noprompt --wait 10 --publishwait 10"
                         if (rc != 0) { error 'installation of release package failed' }
