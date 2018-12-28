@@ -11,7 +11,7 @@ pipeline {
             }
             steps {
                 script {
-                    rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${env.DEV_HUB_CONSUMER_KEY} --username ${env.DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setdefaultdevhubusername"
+                    rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${env.DEV_HUB_CONSUMER_KEY} --username ${env.DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setdefaultdevhubusername --setalias DevHub"
                     if (rc != 0) { error 'devhub org authorization failed' }
                 }
             }
@@ -100,6 +100,7 @@ pipeline {
             when { branch 'release*' }
             steps {
                 script {
+                    sh "echo 'force-app/main/default/aura/MyTestApp' >> .forceignore"
                     // assumes unlocked CIPackage is already created
                     rmsg = sh returnStdout: true, script: "sfdx force:package:version:create --package CIPackage --path force-app --installationkeybypass --branch ${BRANCH_NAME} --wait 10"
                     def robj = new JsonSlurper().parseText(rmsg)
@@ -112,7 +113,6 @@ pipeline {
             when { branch 'release*' }
             steps {
                 script {
-                    sh "echo 'force-app/main/default/aura/MyTestApp' >> .forceignore"
                     rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${env.STAGE_CONSUMER_KEY} --username ${env.STAGE_USERNAME} --jwtkeyfile build/server.key --instanceurl https://test.salesforce.com --setalias STAGE"
                     if (rc != 0) { error 'stage sandbox authorization failed' }
                     rc = sh returnStatus: true, script: "sfdx force:package:install --package ${env.SUBSCRIBER_PACKAGE_VERSION_ID} --targetusername STAGE --noprompt --wait 10 --publishwait 10"
@@ -124,9 +124,8 @@ pipeline {
             when { buildingTag() }
             steps {
                 script {
-                    rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${env.DEV_HUB_CONSUMER_KEY} --username ${env.DEV_HUB_USERNAME} --jwtkeyfile build/server.key --setalias PROD"
-                    if (rc != 0) { error 'prod org authorization failed' }
                     // assumes unlocked CIPackage is already created
+                    sh "echo 'force-app/main/default/aura/MyTestApp' >> .forceignore"
                     rmsg = sh returnStdout: true, script: "sfdx force:package:version:create --package CIPackage --path force-app --installationkeybypass --tag ${TAG_NAME} --wait 10"
                     def robj = new JsonSlurper().parseText(rmsg)
                     if (robj.status != 0) { error 'beta package creation failed: ' + robj.message }
@@ -148,8 +147,7 @@ pipeline {
             steps {
                 script {
                     if (COMMIT) {
-                        sh "echo 'force-app/main/default/aura/MyTestApp' >> .forceignore"
-                        rc = sh returnStatus: true, script: "sfdx force:package:install --package ${env.SUBSCRIBER_PACKAGE_VERSION_ID} --targetusername PROD --noprompt --wait 10 --publishwait 10"
+                        rc = sh returnStatus: true, script: "sfdx force:package:install --package ${env.SUBSCRIBER_PACKAGE_VERSION_ID} --targetusername DevHub --noprompt --wait 10 --publishwait 10"
                         if (rc != 0) { error 'installation of release package failed' }
                     }
                 }
